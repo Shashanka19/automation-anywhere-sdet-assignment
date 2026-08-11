@@ -1,0 +1,23 @@
+{
+  "name": "automation-anywhere-sdet-assignment",
+  "version": "1.0.0",
+  "description": "SDET automation assignment using Playwright and Page Object Model",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shashanka19/automation-anywhere-sdet-assignment.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Shashanka19/automation-anywhere-sdet-assignment/issues"
+  },
+  "homepage": "https://github.com/Shashanka19/automation-anywhere-sdet-assignment#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0"
+  }
+}
