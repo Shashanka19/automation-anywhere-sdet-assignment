@@ -1,38 +1,41 @@
 // @ts-check
+
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
+    testDir: './tests',
 
-  fullyParallel: true,
+    // Automation Anywhere uses a shared authenticated session.
+    // Run tests sequentially to avoid session conflicts.
+    fullyParallel: false,
+    workers: 1,
 
-  forbidOnly: !!process.env.CI,
+    forbidOnly: !!process.env.CI,
 
-  retries: process.env.CI ? 2 : 0,
+    retries: process.env.CI ? 2 : 0,
 
-  workers: process.env.CI ? 1 : undefined,
+    reporter: 'html',
 
-  reporter: 'html',
+    use: {
+        baseURL:
+            'https://community.cloud.automationanywhere.digital',
 
-  use: {
-    baseURL: 'https://community.cloud.automationanywhere.digital',
+        storageState:
+            'playwright/.auth/user.json',
 
-    // Reuse the authenticated session
-    storageState: 'playwright/.auth/user.json',
+        trace: 'on-first-retry',
 
-    trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
 
-    screenshot: 'only-on-failure',
-
-    video: 'retain-on-failure',
-  },
-
-  projects: [
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
+        video: 'retain-on-failure',
     },
-  ],
+
+    projects: [
+        {
+            name: 'chromium',
+            use: {
+                ...devices['Desktop Chrome'],
+            },
+        },
+    ],
 });

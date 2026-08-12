@@ -1,19 +1,21 @@
 const { test, expect } = require('@playwright/test');
 
-const { AutomationPage } = require('../pages/AutomationPage');
 const { TaskBotPage } = require('../pages/TaskBotPage');
 
 test.describe('Use Case 1 - Message Box Task', () => {
 
-    test('Verify Task Bot editor navigation', async ({ page, context }) => {
+    test('Create Task Bot and automate Message Box', async ({ page }) => {
 
-        // Allow enough time for Automation Anywhere's slow SPA operations
         test.setTimeout(120000);
 
-        const automationPage = new AutomationPage(page);
         const taskBotPage = new TaskBotPage(page);
 
-        // Open Automation Anywhere Bots page directly
+        console.log('\n========== USE CASE 1 ==========');
+
+        // =====================================================
+        // 1. OPEN AUTOMATION BOTS PAGE
+        // =====================================================
+
         await page.goto(
             'https://community.cloud.automationanywhere.digital/#/bots/repository/private/folders/33100073',
             {
@@ -22,105 +24,485 @@ test.describe('Use Case 1 - Message Box Task', () => {
             }
         );
 
-        // Wait for the actual Create button
+        await page.waitForTimeout(3000);
+
+        console.log('CURRENT URL:', page.url());
+
+        // =====================================================
+        // 2. VERIFY LOGIN
+        // =====================================================
+
+        if (page.url().includes('/login')) {
+            throw new Error(
+                'Authentication session expired. Refresh playwright/.auth/user.json.'
+            );
+        }
+
+        // =====================================================
+        // 3. OPEN CREATE MENU
+        // =====================================================
+
+        const createButton = page
+            .locator('button[name="createOptions"]:visible')
+            .first();
+
+        await expect(createButton).toBeVisible({
+            timeout: 30000
+        });
+
+        console.log('CREATE BUTTON FOUND');
+
+        await createButton.click();
+
+        await page.waitForTimeout(500);
+
+        console.log('CREATE MENU OPENED');
+
+        // =====================================================
+        // 4. SELECT TASK BOT
+        // =====================================================
+
+        const taskBotOption = page
+            .locator('button[name="createTaskbot"]:visible')
+            .first();
+
+        await expect(taskBotOption).toBeVisible({
+            timeout: 15000
+        });
+
+        console.log('TASK BOT OPTION FOUND');
+
+        await taskBotOption.click();
+
+        console.log('TASK BOT FORM OPENED');
+
+        // =====================================================
+        // 5. CREATE TASK BOT
+        // =====================================================
+
+        const botName =
+            `PW_MessageBox_Final_${Date.now()}`;
+
         await expect(
-            automationPage.createButton
+            taskBotPage.botNameInput
+        ).toBeVisible({
+            timeout: 20000
+        });
+
+        await taskBotPage.botNameInput.fill(botName);
+
+        await taskBotPage.descriptionInput.fill(
+            'Playwright automated Message Box validation'
+        );
+
+        console.log('BOT NAME:', botName);
+
+        await expect(
+            taskBotPage.createAndEditButton
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        await expect(
+            taskBotPage.createAndEditButton
+        ).toBeEnabled({
+            timeout: 15000
+        });
+
+        console.log('CLICKING CREATE & EDIT...');
+
+        await taskBotPage.createAndEditButton.click();
+
+        // =====================================================
+        // 6. WAIT FOR TASK BOT EDITOR
+        // =====================================================
+
+        console.log('WAITING FOR TASK BOT EDITOR...');
+
+        await expect(
+            page.getByRole('button', {
+                name: 'Save',
+                exact: true
+            })
         ).toBeVisible({
             timeout: 30000
         });
 
-        // Open Create menu
-        await automationPage.openCreateMenu();
+        console.log('TASK BOT EDITOR FOUND');
 
-        // Select Task Bot
-        await automationPage.selectTaskBot();
-
-        // Verify Task Bot form
-        await expect(
-            taskBotPage.botNameInput
-        ).toBeVisible({
-            timeout: 20000
-        });
-
-        await expect(
-            taskBotPage.descriptionInput
-        ).toBeVisible({
-            timeout: 20000
-        });
-
-        // Fill Task Bot details
-        await taskBotPage.botNameInput.fill(
-            'PW_Final_MessageBox_TestBot'
-        );
-
-        await taskBotPage.descriptionInput.fill(
-            'Final Playwright Message Box validation'
-        );
-
-        // Verify entered data
-        await expect(
-            taskBotPage.botNameInput
-        ).toHaveValue(
-            'PW_Final_MessageBox_TestBot'
-        );
-
-        await expect(
-            taskBotPage.descriptionInput
-        ).toHaveValue(
-            'Final Playwright Message Box validation'
-        );
-
-        console.log('\nBEFORE CREATE & EDIT URL:');
-        console.log(page.url());
-
-        console.log('\nPAGES BEFORE CREATE & EDIT:');
         console.log(
-            context.pages().map(p => p.url())
+            'EDITOR URL:',
+            page.url()
         );
 
-        // Create & Edit
-        await taskBotPage.createAndEditButton.click();
+        // =====================================================
+        // 7. WAIT FOR FLOW CANVAS
+        // =====================================================
 
-        // Give the application a short chance to update
+        await expect(
+            page.getByText(
+                'Drag an action here or',
+                {
+                    exact: true
+                }
+            )
+        ).toBeVisible({
+            timeout: 30000
+        });
+
+        console.log('FLOW CANVAS READY');
+
+        // =====================================================
+        // 8. FIND QUICK ADD
+        // =====================================================
+
+        const quickAdds = page.locator(
+            '[data-path="TaskbotNodeQuickAdd"]:visible'
+        );
+
+        await expect(
+            quickAdds.first()
+        ).toBeVisible({
+            timeout: 30000
+        });
+
+        await page.waitForTimeout(1000);
+
+        const quickAddCount =
+            await quickAdds.count();
+
+        console.log(
+            'QUICK ADD COUNT:',
+            quickAddCount
+        );
+
+        expect(
+            quickAddCount
+        ).toBeGreaterThanOrEqual(2);
+
+        // =====================================================
+        // 9. OPEN ACTION QUICK ADD
+        // =====================================================
+
+        console.log(
+            'CLICKING ACTION QUICK ADD...'
+        );
+
+        await quickAdds
+            .nth(1)
+            .click();
+
+        await page.waitForTimeout(1000);
+
+        console.log(
+            'ACTION QUICK ADD OPENED'
+        );
+
+        // =====================================================
+        // 10. SEARCH MESSAGE BOX
+        // =====================================================
+
+        const searchInput =
+            page.locator(
+                'input[placeholder*="action" i], ' +
+                'input[placeholder*="package" i], ' +
+                'input[placeholder*="find" i]'
+            )
+            .filter({
+                visible: true
+            })
+            .first();
+
+        await expect(
+            searchInput
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        await searchInput.fill(
+            'message'
+        );
+
+        await page.waitForTimeout(1500);
+
+        console.log(
+            'SEARCHED FOR MESSAGE'
+        );
+
+        // =====================================================
+        // 11. SELECT MESSAGE BOX
+        // =====================================================
+
+        const messageBox =
+            page.getByText(
+                'Message box',
+                {
+                    exact: true
+                }
+            )
+            .filter({
+                visible: true
+            })
+            .first();
+
+        await expect(
+            messageBox
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        console.log(
+            'MESSAGE BOX ACTION FOUND'
+        );
+
+        await messageBox.click();
+
+        await page.waitForTimeout(2000);
+
+        console.log(
+            'MESSAGE BOX ACTION ADDED'
+        );
+
+        // =====================================================
+        // 12. VERIFY CONFIGURATION PANEL
+        // =====================================================
+
+        await expect(
+            page.getByText(
+                'Enter the message box window title',
+                {
+                    exact: true
+                }
+            )
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        await expect(
+            page.getByText(
+                'Enter the message to display',
+                {
+                    exact: true
+                }
+            )
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        console.log(
+            'MESSAGE BOX CONFIGURATION PANEL FOUND'
+        );
+
+        // =====================================================
+        // 13. LOCATE CONTENTEDITABLE FIELDS DIRECTLY
+        // =====================================================
+
+        const titleField =
+            page.locator(
+                '[contenteditable="true"][name="title"]:visible'
+            );
+
+        const messageField =
+            page.locator(
+                '[contenteditable="true"][name="content"]:visible'
+            );
+
+        await expect(
+            titleField
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        await expect(
+            messageField
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        console.log(
+            'WINDOW TITLE FIELD FOUND'
+        );
+
+        console.log(
+            'MESSAGE FIELD FOUND'
+        );
+
+        // =====================================================
+        // 14. FILL WINDOW TITLE
+        // =====================================================
+
+        await titleField.fill(
+            'Playwright Message Box'
+        );
+
+        console.log(
+            'WINDOW TITLE FILLED'
+        );
+
+        // =====================================================
+        // 15. FILL MESSAGE
+        // =====================================================
+
+        await messageField.fill(
+            'Hello from Playwright automation'
+        );
+
+        console.log(
+            'MESSAGE FILLED'
+        );
+
+        // =====================================================
+        // 16. VERIFY CONTENTEDITABLE VALUES
+        // =====================================================
+
+        await expect(
+            titleField
+        ).toHaveText(
+            'Playwright Message Box'
+        );
+
+        await expect(
+            messageField
+        ).toHaveText(
+            'Hello from Playwright automation'
+        );
+
+        console.log(
+            'MESSAGE BOX VALUES VERIFIED'
+        );
+
+        // =====================================================
+        // 17. VERIFY MESSAGE BOX ACTION
+        // =====================================================
+
+        const messageBoxInFlow =
+            page.getByText(
+                'Message box',
+                {
+                    exact: true
+                }
+            )
+            .filter({
+                visible: true
+            });
+
+        expect(
+            await messageBoxInFlow.count()
+        ).toBeGreaterThan(0);
+
+        console.log(
+            'MESSAGE BOX ACTION VERIFIED'
+        );
+
+        // =====================================================
+        // 18. SAVE TASK BOT
+        // =====================================================
+
+        const saveButton =
+            page.getByRole(
+                'button',
+                {
+                    name: 'Save',
+                    exact: true
+                }
+            );
+
+        await expect(
+            saveButton
+        ).toBeVisible({
+            timeout: 15000
+        });
+
+        await expect(
+            saveButton
+        ).toBeEnabled({
+            timeout: 15000
+        });
+
+        console.log(
+            'SAVE BUTTON VERIFIED'
+        );
+
+        await saveButton.click();
+
+        console.log(
+            'SAVE CLICKED'
+        );
+
+        // =====================================================
+        // 19. WAIT FOR SAVE
+        // =====================================================
+
         await page.waitForTimeout(3000);
 
-        console.log('\nAFTER CREATE & EDIT URL:');
-        console.log(page.url());
-
-        console.log('\nALL OPEN PAGES:');
         console.log(
-            context.pages().map(p => p.url())
+            'CURRENT URL AFTER SAVE:',
+            page.url()
         );
 
-        console.log('\nPAGE TITLE:');
-        console.log(await page.title());
+        // =====================================================
+        // 20. VERIFY MESSAGE BOX AFTER SAVE
+        // =====================================================
 
-        console.log('\nVISIBLE BUTTONS:');
-        console.log(
-            await page.locator('button:visible').allTextContents()
-        );
+        const savedMessageBox =
+            page.getByText(
+                'Message box',
+                {
+                    exact: true
+                }
+            )
+            .filter({
+                visible: true
+            });
 
-        console.log('\nVISIBLE LINKS:');
-        console.log(
-            await page.locator('a:visible').allTextContents()
-        );
-
-        console.log('\nPAGE TEXT:');
-        console.log(
-            (await page.locator('body').innerText())
-                .split('\n')
-                .map(text => text.trim())
-                .filter(Boolean)
-                .slice(0, 200)
-        );
-
-        // Confirm the Create Task Bot dialog is gone
         await expect(
-            taskBotPage.createAndEditButton
-        ).not.toBeVisible({
-            timeout: 20000
+            savedMessageBox.first()
+        ).toBeVisible({
+            timeout: 15000
         });
 
-        console.log('\nCREATE TASK BOT DIALOG CLOSED SUCCESSFULLY.');
+        console.log(
+            'SAVED MESSAGE BOX VERIFIED'
+        );
+
+        // =====================================================
+        // 21. FINAL ASSERTIONS
+        // =====================================================
+
+        expect(
+            page.url()
+        ).toContain('/task/');
+
+        console.log(
+            '\n========================================'
+        );
+
+        console.log(
+            'USE CASE 1 COMPLETE'
+        );
+
+        console.log(
+            'Task Bot:',
+            botName
+        );
+
+        console.log(
+            'Window Title:',
+            'Playwright Message Box'
+        );
+
+        console.log(
+            'Message:',
+            'Hello from Playwright automation'
+        );
+
+        console.log(
+            'STATUS: PASS'
+        );
+
+        console.log(
+            '========================================'
+        );
     });
+
 });
