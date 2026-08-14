@@ -24,12 +24,10 @@ test.describe('Use Case 1 - Message Box Task', () => {
             }
         );
 
-        await page.waitForTimeout(3000);
-
         console.log('CURRENT URL:', page.url());
 
         // =====================================================
-        // 2. VERIFY LOGIN
+        // 2. VERIFY AUTHENTICATION
         // =====================================================
 
         if (page.url().includes('/login')) {
@@ -38,10 +36,8 @@ test.describe('Use Case 1 - Message Box Task', () => {
             );
         }
 
-        // =====================================================
-        // 3. OPEN CREATE MENU
-        // =====================================================
-
+        // Wait for the actual application UI instead of relying
+        // only on a fixed timeout.
         const createButton = page
             .locator('button[name="createOptions"]:visible')
             .first();
@@ -50,11 +46,14 @@ test.describe('Use Case 1 - Message Box Task', () => {
             timeout: 30000
         });
 
+        console.log('AUTOMATION PAGE READY');
         console.log('CREATE BUTTON FOUND');
 
-        await createButton.click();
+        // =====================================================
+        // 3. OPEN CREATE MENU
+        // =====================================================
 
-        await page.waitForTimeout(500);
+        await createButton.click();
 
         console.log('CREATE MENU OPENED');
 
@@ -166,8 +165,6 @@ test.describe('Use Case 1 - Message Box Task', () => {
             timeout: 30000
         });
 
-        await page.waitForTimeout(1000);
-
         const quickAddCount =
             await quickAdds.count();
 
@@ -191,8 +188,6 @@ test.describe('Use Case 1 - Message Box Task', () => {
         await quickAdds
             .nth(1)
             .click();
-
-        await page.waitForTimeout(1000);
 
         console.log(
             'ACTION QUICK ADD OPENED'
@@ -222,8 +217,6 @@ test.describe('Use Case 1 - Message Box Task', () => {
         await searchInput.fill(
             'message'
         );
-
-        await page.waitForTimeout(1500);
 
         console.log(
             'SEARCHED FOR MESSAGE'
@@ -256,8 +249,6 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         await messageBox.click();
-
-        await page.waitForTimeout(2000);
 
         console.log(
             'MESSAGE BOX ACTION ADDED'
@@ -294,7 +285,7 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 13. LOCATE CONTENTEDITABLE FIELDS DIRECTLY
+        // 13. LOCATE CONTENTEDITABLE FIELDS
         // =====================================================
 
         const titleField =
@@ -430,10 +421,15 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 19. WAIT FOR SAVE
+        // 19. VERIFY SAVE / TASK URL
         // =====================================================
 
-        await page.waitForTimeout(3000);
+        await expect(page).toHaveURL(
+            /\/task\//,
+            {
+                timeout: 30000
+            }
+        );
 
         console.log(
             'CURRENT URL AFTER SAVE:',
@@ -504,5 +500,4 @@ test.describe('Use Case 1 - Message Box Task', () => {
             '========================================'
         );
     });
-
 });
