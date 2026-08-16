@@ -36,22 +36,26 @@ test.describe('Use Case 1 - Message Box Task', () => {
             );
         }
 
-        // Wait for the actual application UI instead of relying
-        // only on a fixed timeout.
+        console.log('AUTOMATION PAGE READY');
+
+        // =====================================================
+        // 3. OPEN CREATE MENU
+        // =====================================================
+
+        // Use the accessible name of the Create button.
+        // This is more reliable than button[name="createOptions"].
         const createButton = page
-            .locator('button[name="createOptions"]:visible')
+            .getByRole('button', {
+                name: 'Create',
+                exact: true
+            })
             .first();
 
         await expect(createButton).toBeVisible({
             timeout: 30000
         });
 
-        console.log('AUTOMATION PAGE READY');
         console.log('CREATE BUTTON FOUND');
-
-        // =====================================================
-        // 3. OPEN CREATE MENU
-        // =====================================================
 
         await createButton.click();
 
@@ -62,7 +66,9 @@ test.describe('Use Case 1 - Message Box Task', () => {
         // =====================================================
 
         const taskBotOption = page
-            .locator('button[name="createTaskbot"]:visible')
+            .getByText('Task Bot…', {
+                exact: true
+            })
             .first();
 
         await expect(taskBotOption).toBeVisible({
@@ -135,7 +141,7 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 7. WAIT FOR FLOW CANVAS
+        // 7. VERIFY FLOW CANVAS
         // =====================================================
 
         await expect(
@@ -194,19 +200,16 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 10. SEARCH MESSAGE BOX
+        // 10. FIND ACTION SEARCH
         // =====================================================
 
-        const searchInput =
-            page.locator(
-                'input[placeholder*="action" i], ' +
-                'input[placeholder*="package" i], ' +
-                'input[placeholder*="find" i]'
-            )
-            .filter({
-                visible: true
-            })
-            .first();
+        const searchInput = page.locator(
+            'input[placeholder*="action" i], ' +
+            'input[placeholder*="package" i], ' +
+            'input[placeholder*="find" i]'
+        ).filter({
+            visible: true
+        }).first();
 
         await expect(
             searchInput
@@ -214,29 +217,32 @@ test.describe('Use Case 1 - Message Box Task', () => {
             timeout: 15000
         });
 
-        await searchInput.fill(
-            'message'
+        console.log(
+            'ACTION SEARCH FOUND'
         );
+
+        // =====================================================
+        // 11. SEARCH FOR MESSAGE BOX
+        // =====================================================
+
+        await searchInput.fill('message');
 
         console.log(
             'SEARCHED FOR MESSAGE'
         );
 
         // =====================================================
-        // 11. SELECT MESSAGE BOX
+        // 12. SELECT MESSAGE BOX
         // =====================================================
 
-        const messageBox =
-            page.getByText(
+        const messageBox = page
+            .getByText(
                 'Message box',
                 {
                     exact: true
                 }
             )
-            .filter({
-                visible: true
-            })
-            .first();
+            .last();
 
         await expect(
             messageBox
@@ -255,7 +261,7 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 12. VERIFY CONFIGURATION PANEL
+        // 13. VERIFY MESSAGE BOX CONFIGURATION
         // =====================================================
 
         await expect(
@@ -285,27 +291,19 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 13. LOCATE CONTENTEDITABLE FIELDS
+        // 14. FIND MESSAGE BOX FIELDS
         // =====================================================
 
-        const titleField =
-            page.locator(
-                '[contenteditable="true"][name="title"]:visible'
-            );
+        const titleField = page.locator(
+            '[contenteditable="true"][name="title"]:visible'
+        ).first();
 
-        const messageField =
-            page.locator(
-                '[contenteditable="true"][name="content"]:visible'
-            );
+        const messageField = page.locator(
+            '[contenteditable="true"][name="content"]:visible'
+        ).first();
 
         await expect(
             titleField
-        ).toBeVisible({
-            timeout: 15000
-        });
-
-        await expect(
-            messageField
         ).toBeVisible({
             timeout: 15000
         });
@@ -314,28 +312,36 @@ test.describe('Use Case 1 - Message Box Task', () => {
             'WINDOW TITLE FIELD FOUND'
         );
 
+        await expect(
+            messageField
+        ).toBeVisible({
+            timeout: 15000
+        });
+
         console.log(
             'MESSAGE FIELD FOUND'
         );
 
         // =====================================================
-        // 14. FILL WINDOW TITLE
+        // 15. CONFIGURE MESSAGE BOX
         // =====================================================
 
+        const windowTitle =
+            'Playwright Message Box';
+
+        const message =
+            'Hello from Playwright automation';
+
         await titleField.fill(
-            'Playwright Message Box'
+            windowTitle
         );
 
         console.log(
             'WINDOW TITLE FILLED'
         );
 
-        // =====================================================
-        // 15. FILL MESSAGE
-        // =====================================================
-
         await messageField.fill(
-            'Hello from Playwright automation'
+            message
         );
 
         console.log(
@@ -343,19 +349,19 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 16. VERIFY CONTENTEDITABLE VALUES
+        // 16. VERIFY MESSAGE BOX VALUES
         // =====================================================
 
         await expect(
             titleField
         ).toHaveText(
-            'Playwright Message Box'
+            windowTitle
         );
 
         await expect(
             messageField
         ).toHaveText(
-            'Hello from Playwright automation'
+            message
         );
 
         console.log(
@@ -372,10 +378,7 @@ test.describe('Use Case 1 - Message Box Task', () => {
                 {
                     exact: true
                 }
-            )
-            .filter({
-                visible: true
-            });
+            );
 
         expect(
             await messageBoxInFlow.count()
@@ -386,7 +389,7 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 18. SAVE TASK BOT
+        // 18. SAVE
         // =====================================================
 
         const saveButton =
@@ -396,7 +399,7 @@ test.describe('Use Case 1 - Message Box Task', () => {
                     name: 'Save',
                     exact: true
                 }
-            );
+            ).first();
 
         await expect(
             saveButton
@@ -421,10 +424,12 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 19. VERIFY SAVE / TASK URL
+        // 19. VERIFY AFTER SAVE
         // =====================================================
 
-        await expect(page).toHaveURL(
+        await expect(
+            page
+        ).toHaveURL(
             /\/task\//,
             {
                 timeout: 30000
@@ -436,25 +441,18 @@ test.describe('Use Case 1 - Message Box Task', () => {
             page.url()
         );
 
-        // =====================================================
-        // 20. VERIFY MESSAGE BOX AFTER SAVE
-        // =====================================================
-
         const savedMessageBox =
             page.getByText(
                 'Message box',
                 {
                     exact: true
                 }
-            )
-            .filter({
-                visible: true
-            });
+            );
 
         await expect(
             savedMessageBox.first()
         ).toBeVisible({
-            timeout: 15000
+            timeout: 30000
         });
 
         console.log(
@@ -462,42 +460,19 @@ test.describe('Use Case 1 - Message Box Task', () => {
         );
 
         // =====================================================
-        // 21. FINAL ASSERTIONS
+        // 20. FINAL VERIFICATION
         // =====================================================
 
         expect(
             page.url()
         ).toContain('/task/');
 
-        console.log(
-            '\n========================================'
-        );
-
-        console.log(
-            'USE CASE 1 COMPLETE'
-        );
-
-        console.log(
-            'Task Bot:',
-            botName
-        );
-
-        console.log(
-            'Window Title:',
-            'Playwright Message Box'
-        );
-
-        console.log(
-            'Message:',
-            'Hello from Playwright automation'
-        );
-
-        console.log(
-            'STATUS: PASS'
-        );
-
-        console.log(
-            '========================================'
-        );
+        console.log('\n========================================');
+        console.log('USE CASE 1 COMPLETE');
+        console.log('Task Bot:', botName);
+        console.log('Window Title:', windowTitle);
+        console.log('Message:', message);
+        console.log('STATUS: PASS');
+        console.log('========================================');
     });
 });
